@@ -129,7 +129,7 @@ class StepupDecisionTest extends TestCase
             'Use SP LoA if only SP LoA set (allow no stepup)' => [['loa2', '', [], [], true], [true, 'loa2', true]],
             'Use IdP LoA if only IdP LoA set (allow no stepup)' => [['', 'loa3', [], [], true], [true, 'loa3', true]],
 
-            'Use SP LoA if SP LoA is higest (allow no stepup)' => [['loa3', 'loa2', [], [], true], [true, 'loa3', true]],
+            'Use SP LoA if SP LoA is highest (allow no stepup)' => [['loa3', 'loa2', [], [], true], [true, 'loa3', true]],
             'Use IdP LoA if IdP LoA is highest (allow no stepup)' => [['loa2', 'loa3', [], [], true], [true, 'loa3', true]],
 
             'Use PdP LoA if SP LoA and PdP LoA set and PDP LoA is highest (allow no stepup)' => [['loa2', '', [], ['loa3'], true], [true, 'loa3', true]],

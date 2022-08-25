@@ -42,8 +42,8 @@ class LoaRepository
         foreach ($loaMapping as $level => $mapping) {
             Assertion::integer(
                 $level,
-                'The stepup.loa.mapping should be followed by an integer value, indicating the LoA level. ' .
-                'Example: stepup.loa.mapping.3'
+                'The stepup.loa.mapping should be followed by a float value, indicating the LoA level. ' .
+                'Example: stepup.loa.mapping.3.0'
             );
             Assertion::keysExist(
                 $mapping,

@@ -28,12 +28,13 @@ class Loa
     /**
      * The different levels
      */
-    const LOA_1 = 1;
-    const LOA_2 = 2;
-    const LOA_3 = 3;
+    const LOA_1 = 1.0;
+    const LOA_1_5 = 1.5;
+    const LOA_2 = 2.0;
+    const LOA_3 = 3.0;
 
     /**
-     * @var int
+     * @var float
      */
     private $level;
 
@@ -48,9 +49,9 @@ class Loa
      */
     public static function create($level, $identifier)
     {
-        $possibleLevels = [self::LOA_1, self::LOA_2, self::LOA_3];
+        $possibleLevels = [self::LOA_1, self::LOA_1_5, self::LOA_2, self::LOA_3];
 
-        Assertion::integer($level, 'The LoA level must be an integer value');
+        Assertion::float($level, 'The LoA level must be a numeric (float) value');
         Assertion::inArray(
             $level,
             $possibleLevels,
@@ -77,7 +78,7 @@ class Loa
     }
 
     /**
-     * @return int
+     * @return float
      */
     public function getLevel()
     {
