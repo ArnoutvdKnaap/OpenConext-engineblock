@@ -83,7 +83,15 @@ class StepupDecision
         }
 
         $this->spNoToken = $sp->getCoins()->stepupAllowNoToken();
-        $this->idpResponseLoa = $idpResponseLoa;
+
+        //only set ipdResponseLoa if provided and valid
+        if ($idpResponseLoa) {
+            try {
+                $this->idpResponseLoa = $loaRepository->getByIdentifier($idpResponseLoa);
+            } catch (LoaNotFoundException $e) {
+                $this->logger->debug(sprintf('StepupDecision: IdP Response LoA "%s" is invalid and wil be ignored', $idpResponseLoa));
+            }   
+        }
 
         foreach ($pdpLoas as $loaId) {
             $this->pdpLoas[] = $loaRepository->getByIdentifier($loaId);
@@ -167,15 +175,8 @@ class StepupDecision
         if ($this->idpResponseLoa) {
             return false;
         }
-        try {
-            $idpLoa = $this->loaRepository->getByIdentifier($this->idpResponseLoa);
-            if($idpLoa && $idpLoa->levelIsHigherOrEqualTo($isLoaAsked)) {
-                return true;
-            }
-        } catch (Exception $e) {
-            // If the IdP response LoA is invalid, we cannot consider it sufficient.
-            $this->logger->debug(sprintf('StepupDecision: IdP Response LoA "%s" is invalid and wil be ignored', $this->idpResponseLoa));
-            return false;
+        if($idpLoa && $idpLoa->levelIsHigherOrEqualTo($isLoaAsked)) {
+             return true;
         }
         return false;
     } 
