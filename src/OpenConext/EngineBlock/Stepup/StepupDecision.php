@@ -164,15 +164,15 @@ class StepupDecision
      */
     private function checkIDPLoaIsSufficient($isLoaAsked): bool
     {
-        if ($this->idpResponseLoa === null) {
+        if ($this->idpResponseLoa) {
             return false;
         }
         try {
-            $idpLoa = Loa::fromIdentifier($this->idpResponseLoa);
-            if($idpLoa->levelIsHigherOrEqualTo($isLoaAsked)) {
+            $idpLoa = $this->loaRepository->getByIdentifier($this->idpResponseLoa);
+            if($idpLoa && $idpLoa->levelIsHigherOrEqualTo($isLoaAsked)) {
                 return true;
             }
-        } catch (\InvalidArgumentException $e) {
+        } catch (Exception $e) {
             // If the IdP response LoA is invalid, we cannot consider it sufficient.
             $this->logger->debug(sprintf('StepupDecision: IdP Response LoA "%s" is invalid and wil be ignored', $this->idpResponseLoa));
             return false;
