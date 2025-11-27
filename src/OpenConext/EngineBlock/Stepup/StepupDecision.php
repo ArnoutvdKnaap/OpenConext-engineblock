@@ -46,6 +46,11 @@ class StepupDecision
     /**
      * @var bool
      */
+    /**
+     * @var string|null
+     */
+    private $idpResponseLoa = null;
+
     private $spNoToken;
 
     private $logger;
@@ -58,6 +63,7 @@ class StepupDecision
         ServiceProvider $sp,
         array $authnRequestLoas,
         array $pdpLoas,
+        string $idpResponseLoa,
         LoaRepository $loaRepository,
         LoggerInterface $logger
     ) {
@@ -77,6 +83,7 @@ class StepupDecision
         }
 
         $this->spNoToken = $sp->getCoins()->stepupAllowNoToken();
+        $this->idpResponseLoa = $idpResponseLoa;
 
         foreach ($pdpLoas as $loaId) {
             $this->pdpLoas[] = $loaRepository->getByIdentifier($loaId);
@@ -91,6 +98,11 @@ class StepupDecision
         // If the highest level is 1, no step up callout is required.
         $isLoaAsked = $this->getStepupLoa();
         if ($isLoaAsked && $isLoaAsked->getLevel() === Loa::LOA_1) {
+            return false;
+        }
+        // If the Loa is reached by the IDP, no stepup callout is required.
+        if ($this->checkIDPLoaIsSufficient($isLoaAsked)) {
+            $this->logger->info('StepupDecision: IdP Response LoA is sufficient, no Stepup required');
             return false;
         }
         return $isLoaAsked instanceof Loa;
@@ -146,6 +158,28 @@ class StepupDecision
         $this->logger->info(sprintf('StepupDecision: requiring LoA %s', $highestLevel->getIdentifier()), $logData);
         return $highestLevel;
     }
+
+    /**
+     * Check if the IDP responseLoa is sufficient.
+     */
+    private function checkIDPLoaIsSufficient($isLoaAsked): bool
+    {
+        if ($this->idpResponseLoa === null) {
+            return false;
+        }
+        try {
+            $idpLoa = Loa::fromIdentifier($this->idpResponseLoa);
+            if($idpLoa->levelIsHigherOrEqualTo($isLoaAsked)) {
+                return true;
+            }
+        } catch (\InvalidArgumentException $e) {
+            // If the IdP response LoA is invalid, we cannot consider it sufficient.
+            $this->logger->debug(sprintf('StepupDecision: IdP Response LoA "%s" is invalid and wil be ignored', $this->idpResponseLoa));
+            return false;
+        }
+        return false;
+    } 
+
 
     public function allowNoToken(): bool
     {
