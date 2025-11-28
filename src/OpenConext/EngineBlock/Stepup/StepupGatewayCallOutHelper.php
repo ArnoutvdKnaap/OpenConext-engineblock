@@ -54,7 +54,7 @@ final class StepupGatewayCallOutHelper
         ServiceProvider $serviceProvider,
         array $authnRequestLoas,
         array $pdpLoas,
-        string $idpResponseLoa
+        string|null $idpResponseLoa
     ) : bool {
         $stepupDecision = new StepupDecision(
             $identityProvider,
