@@ -79,6 +79,7 @@ final class StepupGatewayCallOutHelper
             $serviceProvider,
             $authnRequestLoas,
             $pdpLoas,
+            null,
             $this->loaRepository,
             $this->logger
         );
