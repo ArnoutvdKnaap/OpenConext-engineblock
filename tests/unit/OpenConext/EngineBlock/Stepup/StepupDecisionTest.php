@@ -225,4 +225,38 @@ class StepupDecisionTest extends TestCase
         $this->assertTrue($stepupDecision->shouldUseStepup());
         $this->assertEquals('loa30', $stepupDecision->getStepupLoa()->getIdentifier());
     }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Group('Stepup')]
+    public function unknown_idp_response_loa_is_ignored_and_triggers_stepup()
+    {
+        $sp = Utils::instantiate(
+            ServiceProvider::class,
+            [
+                'entityId' => 'sp',
+                'stepupRequireLoa' => 'loa30',
+                'stepupAllowNoToken' => false,
+            ]
+        );
+
+        $idp = Utils::instantiate(
+            IdentityProvider::class,
+            [
+                'entityId' => 'idp',
+                'stepupConnections' => new StepupConnections([]),
+            ]
+        );
+
+        $repo = m::mock(LoaRepository::class);
+        // SP expects loa30
+        $repo->shouldReceive('getByIdentifier')->with('loa30')->andReturn(Loa::create(30, 'loa30'));
+        // The idp response contains an unknown LoA
+        $repo->shouldReceive('getByIdentifier')->with('bad-loa')->andThrow(new \OpenConext\EngineBlock\Exception\LoaNotFoundException('not found'));
+
+        $logger = m::mock(LoggerInterface::class)->shouldIgnoreMissing();
+
+        $stepupDecision = new StepupDecision($idp, $sp, [], [], 'bad-loa', $repo, $logger);
+
+        $this->assertTrue($stepupDecision->shouldUseStepup());
+    }
 }
