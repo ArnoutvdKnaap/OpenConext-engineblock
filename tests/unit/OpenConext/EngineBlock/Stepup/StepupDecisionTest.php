@@ -69,7 +69,7 @@ class StepupDecisionTest extends TestCase
         $repo = $this->buildMockRepository($input);
         $logger = m::mock(LoggerInterface::class)->shouldIgnoreMissing();
 
-        $stepupDecision = new StepupDecision($idp, $sp, $input[2], $input[3], $repo, $logger);
+        $stepupDecision = new StepupDecision($idp, $sp, $input[2], $input[3], null, $repo, $logger);
 
         $useStepup = $stepupDecision->shouldUseStepup();
         $stepupLoa = $stepupDecision->getStepupLoa();
@@ -159,5 +159,70 @@ class StepupDecisionTest extends TestCase
         $level = (int) reset($matches[0]);
         $loa = Loa::create($level, $loaLevel);
         return $loa;
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Group('Stepup')]
+    public function idp_response_loa_is_sufficient_prevents_stepup()
+    {
+        $sp = Utils::instantiate(
+            ServiceProvider::class,
+            [
+                'entityId' => 'sp',
+                'stepupRequireLoa' => 'loa20',
+                'stepupAllowNoToken' => false,
+            ]
+        );
+
+        $idp = Utils::instantiate(
+            IdentityProvider::class,
+            [
+                'entityId' => 'idp',
+                'stepupConnections' => new StepupConnections([]),
+            ]
+        );
+
+        $repo = m::mock(LoaRepository::class);
+        $repo->shouldReceive('getByIdentifier')->with('loa20')->andReturn(Loa::create(20, 'loa20'));
+        $repo->shouldReceive('getByIdentifier')->with('loa30')->andReturn(Loa::create(30, 'loa30'));
+
+        $logger = m::mock(LoggerInterface::class)->shouldIgnoreMissing();
+
+        $stepupDecision = new StepupDecision($idp, $sp, [], [], 'loa30', $repo, $logger);
+
+        $this->assertFalse($stepupDecision->shouldUseStepup());
+    }
+
+    #[\PHPUnit\Framework\Attributes\Test]
+    #[\PHPUnit\Framework\Attributes\Group('Stepup')]
+    public function idp_response_loa_is_insufficient_triggers_stepup()
+    {
+        $sp = Utils::instantiate(
+            ServiceProvider::class,
+            [
+                'entityId' => 'sp',
+                'stepupRequireLoa' => 'loa30',
+                'stepupAllowNoToken' => false,
+            ]
+        );
+
+        $idp = Utils::instantiate(
+            IdentityProvider::class,
+            [
+                'entityId' => 'idp',
+                'stepupConnections' => new StepupConnections([]),
+            ]
+        );
+
+        $repo = m::mock(LoaRepository::class);
+        $repo->shouldReceive('getByIdentifier')->with('loa30')->andReturn(Loa::create(30, 'loa30'));
+        $repo->shouldReceive('getByIdentifier')->with('loa20')->andReturn(Loa::create(20, 'loa20'));
+
+        $logger = m::mock(LoggerInterface::class)->shouldIgnoreMissing();
+
+        $stepupDecision = new StepupDecision($idp, $sp, [], [], 'loa20', $repo, $logger);
+
+        $this->assertTrue($stepupDecision->shouldUseStepup());
+        $this->assertEquals('loa30', $stepupDecision->getStepupLoa()->getIdentifier());
     }
 }

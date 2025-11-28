@@ -169,18 +169,22 @@ class StepupDecision
     }
 
     /**
-     * Check if the IDP responseLoa is sufficient.
+     * Check if the IDP response LoA is sufficient for the requested LoA.
      */
     private function checkIDPLoaIsSufficient($isLoaAsked): bool
     {
         if ($this->idpResponseLoa) {
             return false;
         }
-        if($idpLoa && $idpLoa->levelIsHigherOrEqualTo($isLoaAsked)) {
-             return true;
+
+        // If the IdP did not provide a LoA in the response, it cannot satisfy the requirement
+        if (!$this->idpResponseLoa) {
+            return false;
         }
-        return false;
-    } 
+
+        // Check whether the IdP response LoA level meets or exceeds the requested LoA
+        return $this->idpResponseLoa->levelIsHigherOrEqualTo($isLoaAsked);
+    }
 
 
     public function allowNoToken(): bool
