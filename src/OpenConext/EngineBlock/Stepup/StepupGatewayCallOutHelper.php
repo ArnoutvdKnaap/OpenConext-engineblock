@@ -103,7 +103,7 @@ final class StepupGatewayCallOutHelper
 
     public function allowNoToken(IdentityProvider $identityProvider, ServiceProvider $serviceProvider) : bool
     {
-        $stepupDecision = new StepupDecision($identityProvider, $serviceProvider, [], [], $this->loaRepository, $this->logger);
+        $stepupDecision = new StepupDecision($identityProvider, $serviceProvider, [], [], null, $this->loaRepository, $this->logger);
         return $stepupDecision->allowNoToken();
     }
 }
