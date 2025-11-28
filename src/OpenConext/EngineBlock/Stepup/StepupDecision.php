@@ -63,7 +63,7 @@ class StepupDecision
         ServiceProvider $sp,
         array $authnRequestLoas,
         array $pdpLoas,
-        string $idpResponseLoa,
+        string|null $idpResponseLoa,
         LoaRepository $loaRepository,
         LoggerInterface $logger
     ) {
